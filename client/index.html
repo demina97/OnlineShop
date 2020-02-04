@@ -1,0 +1,136 @@
+<html xmlns:v-bind="http://www.w3.org/1999/xhtml" xmlns:v-on="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>Online Shop</title>
+    <script src="https://unpkg.com/vue"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.16.2/axios.js"></script>
+    <link href="https://fonts.googleapis.com/css?family=Roboto:400,700&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <div id="app">
+      <header>
+        <div v-if="!cartView">
+          <h1 v-text="storeName"></h1>
+          <ul>
+            <li v-for="category in categories">
+              <h3 v-text="category" @click="productOfCategory(category)"></h3>
+            </li>
+          </ul>
+          <button class="refToCart" @click="cartView=true">Перейти в корзину</button>
+        </div>
+        <div v-if="cartView">
+          <h1 v-text="storeName"></h1>
+          <h2>Корзина</h2>
+          <button @click="cartView=false">Перейти к каталогу</button>
+        </div>
+      </header>
+
+      <main>
+        <div v-if="!cartView">
+          <div v-if="allProductsView" v-for="product in allproducts">
+            <figure>
+              <h2 v-text="product.product_name"></h2>
+              <p v-text="product.product_description"></p>
+              <p v-text="product.category_name.CategoryName"></p>
+              <button @click="addToCart(product)">Купить</button>
+            </figure>
+          </div>
+          <div v-if="!allProductsView" v-for="p in products">
+            <figure>
+              <h2 v-text="p.product_name"></h2>
+              <p v-text="p.product_description"></p>
+              <p v-text="p.category_name.categoryName"></p>
+              <button @click="addToCart(p)">Купить</button>
+            </figure>
+          </div>
+        </div>
+
+        <div v-if="cartView">
+          <div v-for="c in cart">
+            <figure>
+              <h2 v-text="c.product_name"></h2>
+              <p v-text="c.product_description"></p>
+              <p v-text="c.category_name.CategoryName"></p>
+              <button @click="deleteFromCart(c)">Удалить</button>
+            </figure>
+          </div>
+        </div>
+
+      </main>
+    </div>
+
+    <script>
+      var APP_LOG_LIFECYCLE_EVENTS = false; 
+
+      var webstore = new Vue({
+        el: '#app',
+        data: {
+          storeName: 'Online Shop',
+          allproducts: [],
+          categories:[],
+          products:[],
+          cart: [],
+          allProductsView: true,
+          cartView: false
+        },
+        beforeCreate: function() {
+          if(APP_LOG_LIFECYCLE_EVENTS)
+            console.log("beforeCreate");
+        },
+        created: function() {
+          axios.get('http://localhost:8080/categories')
+            .then((responce) => {
+              console.log(responce);
+              this.categories = responce.data;
+            })
+
+          axios.get('http://localhost:8080/allproducts')
+            .then((responce) => {
+              console.log(responce);
+            this.allproducts = responce.data;
+          })
+        },
+        beforeMount: function() {
+          if(APP_LOG_LIFECYCLE_EVENTS)
+            console.log("beforeMount");
+        },
+        mounted: function() {
+          if(APP_LOG_LIFECYCLE_EVENTS)
+            console.log("mounted");
+        },
+        beforeUpdate: function() {
+          if(APP_LOG_LIFECYCLE_EVENTS)
+            console.log("beforeUpdate");
+        },
+        updated: function() {
+          if(APP_LOG_LIFECYCLE_EVENTS)
+            console.log("updated");
+        },
+        beforeDestroy: function() {
+          if(APP_LOG_LIFECYCLE_EVENTS)
+            console.log("beforeDestroy");
+        },
+        destroyed: function() {
+          if(APP_LOG_LIFECYCLE_EVENTS) {
+            console.log("destroyed");
+          }
+        },
+        methods: {
+          addToCart: function(product) {
+            this.cart.push(product);
+          },
+          productOfCategory(category_name){
+            axios.get('http://localhost:8080/products?category_name=' + category_name)
+              .then((responce) => {
+                console.log(responce);
+                this.products = responce.data;
+                this.allProductsView = false;
+              })
+          },
+          deleteFromCart(product){
+            this.cart.splice(this.cart.indexOf(product) ,1);
+          }
+        }
+      });
+    </script>
+  </body>
+</html>
